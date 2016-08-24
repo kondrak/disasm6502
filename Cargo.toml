@@ -1,0 +1,6 @@
+[package]
+name = "disasm6502"
+version = "0.1.0"
+authors = ["Krzysztof Kondrak <krzysztof.kondrak@game-lion.com>"]
+
+[dependencies]
