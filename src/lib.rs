@@ -1,22 +1,11 @@
 pub mod error;
+pub mod instruction;
 
 use error::Result;
+use instruction::Instruction;
 use std::fs::File;
 use std::io::prelude::*;
 use std::path::Path;
-
-#[derive(Debug)]
-pub struct Instruction {
-    foo: u8
-}
-
-impl Instruction {
-    fn new() -> Instruction {
-        Instruction {
-            foo: 0
-        }
-    }
-}
 
 pub fn from_file(filename: &str) -> Result<Vec<Instruction>> {
     let path = Path::new(&filename);
@@ -27,13 +16,14 @@ pub fn from_file(filename: &str) -> Result<Vec<Instruction>> {
     from_array(&bytes)
 }
 
-pub fn from_vec(bytes: &Vec<u8>) -> Result<Vec<Instruction>> {
-    from_array(&bytes)
-}
-
 pub fn from_array(bytes: &[u8]) -> Result<Vec<Instruction>> {
     let mut ret = Vec::<Instruction>::new();
-    ret.push(Instruction::new());
-    // TODO
+
+    let mut index: usize = 0;
+    while index < bytes.len() {
+        let instruction = instruction::decode(&mut index, &bytes);
+        ret.push(instruction);
+    }
+
     Ok(ret)
 }
