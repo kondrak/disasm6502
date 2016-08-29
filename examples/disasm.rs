@@ -12,5 +12,4 @@ fn main()
         // print instruction
         println!("{}", i);
     }
-    // TODO
 }

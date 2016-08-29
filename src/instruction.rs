@@ -140,30 +140,7 @@ pub struct Instruction {
 
 impl fmt::Display for Instruction {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let (op_value, op_hi, op_lo) = if let Some(v) = self.operand {
-            (v, (v >> 8) & 0xFF, v & 0xFF)
-        } else {
-            (0, 0, 0)
-        };
-        
-        let (operand, operand_hex) = match self.addr_mode {
-            AddrMode::Implied => (format!(""), format!("      ")),
-            AddrMode::Accumulator => (format!("A"), format!("      ")),
-            AddrMode::Immediate => (format!("#${:02X}", op_value), format!(" {:02X}   ", op_lo)),
-            AddrMode::Absolute => (format!("${:04X}", op_value), format!(" {:02X} {:02X}", op_lo, op_hi)),
-            AddrMode::AbsoluteIndexedX(_) => (format!("${:04X},X", op_value), format!(" {:02X} {:02X}", op_lo, op_hi)),
-            AddrMode::AbsoluteIndexedY(_) => (format!("${:04X},Y", op_value), format!(" {:02X} {:02X}", op_lo, op_hi)),
-            AddrMode::Zeropage => (format!("${:02X}", op_value), format!(" {:02X}   ", op_lo)),
-            AddrMode::ZeropageIndexedX => (format!("${:02X},X", op_value), format!(" {:02X}   ", op_lo)),
-            AddrMode::ZeropageIndexedY => (format!("${:02X},Y", op_value), format!(" {:02X}   ", op_lo)),
-            // TODO: check wrapping?
-            AddrMode::Relative => (format!("${:04X}", (self.address as i16 + (2 + op_value as i8) as i16) as u16), format!(" {:02X}   ", op_lo)),
-            AddrMode::Indirect => (format!("(${:04X})", op_value), format!(" {:02X} {:02X}", op_lo, op_hi)),
-            AddrMode::IndexedIndirectX => (format!("(${:02X},X)", op_value), format!(" {:02X}   ", op_lo)),
-            AddrMode::IndirectIndexedY(_) => (format!("(${:02X}),Y", op_value), format!(" {:02X}   ", op_lo))
-        };
-
-        write!(f, "${:04X}: {:02X}{} {} {}", self.address, self.opcode.to_hex(), operand_hex, self.opcode, operand)
+        write!(f, "${:04X}: {} {}", self.address, self.as_hex_str(), self.as_str())
     }
 }
 
@@ -178,6 +155,55 @@ impl Instruction {
             registers_read: None,
             registers_written: None
         }
+    }
+
+    pub fn as_hex_str(&self) -> String {
+        let (oper_hi, oper_lo) = if let Some(v) = self.operand {
+            ((v >> 8) & 0xFF, v & 0xFF)
+        } else {
+            (0, 0)
+        };
+        
+        let operand_hex = match self.addr_mode {
+            AddrMode::Implied     => format!("      "),
+            AddrMode::Accumulator => format!("      "),
+            AddrMode::Immediate   => format!(" {:02X}   ", oper_lo),
+            AddrMode::Absolute    => format!(" {:02X} {:02X}", oper_lo, oper_hi),
+            AddrMode::AbsoluteIndexedX(_) => format!(" {:02X} {:02X}", oper_lo, oper_hi),
+            AddrMode::AbsoluteIndexedY(_) => format!(" {:02X} {:02X}", oper_lo, oper_hi),
+            AddrMode::Zeropage => format!(" {:02X}   ", oper_lo),
+            AddrMode::ZeropageIndexedX => format!(" {:02X}   ", oper_lo),
+            AddrMode::ZeropageIndexedY => format!(" {:02X}   ", oper_lo),
+            AddrMode::Relative => format!(" {:02X}   ", oper_lo),
+            AddrMode::Indirect => format!(" {:02X} {:02X}", oper_lo, oper_hi),
+            AddrMode::IndexedIndirectX    => format!(" {:02X}   ", oper_lo),
+            AddrMode::IndirectIndexedY(_) => format!(" {:02X}   ", oper_lo)
+        };
+
+        format!("{:02X}{}", self.opcode.to_hex(), operand_hex)
+    }
+
+    pub fn as_str(&self) -> String {
+        let operand = if let Some(v) = self.operand { v } else { 0 };
+        
+        let operand_str = match self.addr_mode {
+            AddrMode::Implied     => format!(""),
+            AddrMode::Accumulator => format!("A"),
+            AddrMode::Immediate   => format!("#${:02X}", operand),
+            AddrMode::Absolute    => format!("${:04X}", operand),
+            AddrMode::AbsoluteIndexedX(_) => format!("${:04X},X", operand),
+            AddrMode::AbsoluteIndexedY(_) => format!("${:04X},Y", operand),
+            AddrMode::Zeropage => format!("${:02X}", operand),
+            AddrMode::ZeropageIndexedX => format!("${:02X},X", operand),
+            AddrMode::ZeropageIndexedY => format!("${:02X},Y", operand),
+            // TODO: check wrapping?
+            AddrMode::Relative => format!("${:04X}", (self.address as i16 + (2 + operand as i8) as i16) as u16),
+            AddrMode::Indirect => format!("(${:04X})", operand),
+            AddrMode::IndexedIndirectX    => format!("(${:02X},X)", operand),
+            AddrMode::IndirectIndexedY(_) => format!("(${:02X}),Y", operand)
+        };
+
+        format!("{} {}", self.opcode, operand_str)
     }
 }
 
@@ -200,10 +226,10 @@ fn fetch_operand(addr_mode: &AddrMode, index: &mut usize, buffer: &[u8]) -> Opti
         AddrMode::Zeropage => Some(buffer[*index] as u16),
         AddrMode::ZeropageIndexedX => Some(buffer[*index] as u16),
         AddrMode::ZeropageIndexedY => Some(buffer[*index] as u16),
-        AddrMode::Relative => Some(buffer[*index] as u16),
+        AddrMode::Relative  => Some(buffer[*index] as u16),
         AddrMode::Immediate => Some(buffer[*index] as u16),
-        AddrMode::Indirect => Some(read_word_le(index, buffer)),
-        AddrMode::IndexedIndirectX => Some(buffer[*index] as u16),
+        AddrMode::Indirect  => Some(read_word_le(index, buffer)),
+        AddrMode::IndexedIndirectX    => Some(buffer[*index] as u16),
         AddrMode::IndirectIndexedY(_) => Some(buffer[*index] as u16),
         _ => None
     };
