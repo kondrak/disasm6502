@@ -19,3 +19,8 @@ fn check_disasm_file() {
         println!("{}", i);
     }
 }
+
+#[test]
+#[should_panic]
+fn check_disasm_file_fail() {
+    let _ = disasm6502::from_file("tests/foo").unwrap(); }
