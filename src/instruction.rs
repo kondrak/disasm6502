@@ -241,30 +241,33 @@ fn fetch_operand(addr_mode: &AddrMode, index: &mut usize, buffer: &[u8]) -> Opti
     operand
 }
 
-fn fetch(opcode: OpCode, num_cycles: u8, addr_mode: AddrMode, address: u16, index: &mut usize, buffer: &[u8]) -> Instruction {
+fn fetch(opcode: OpCode, num_cycles: u8, addr_mode: AddrMode, data: (u16, &mut usize, &[u8])) -> Instruction {
     // TODO: cycle count should be adjusted here for certain instructions
-    let operand = fetch_operand(&addr_mode, index, buffer);
-    let mut instruction = Instruction::new(opcode, address, num_cycles, addr_mode);
+    let operand = fetch_operand(&addr_mode, data.1, data.2);
+    let mut instruction = Instruction::new(opcode, data.0, num_cycles, addr_mode);
     instruction.operand = operand;
     instruction
 }
 
 pub fn decode(address: u16, index: &mut usize, memory: &[u8]) -> Instruction {
     let op = memory[*index];
+
+    // use a tuple for less obfuscated code
+    let data = (address, index, memory);
     match op {
-        0x05 => fetch(OpCode::ORA(op), 3, AddrMode::Zeropage, address, index, memory),
-        0x0A => fetch(OpCode::ASL(op), 2, AddrMode::Accumulator, address, index, memory),
-        0x15 => fetch(OpCode::ORA(op), 4, AddrMode::ZeropageIndexedX, address, index, memory),
-        0x20 => fetch(OpCode::JSR(op), 6, AddrMode::Absolute, address, index, memory),
-        0x78 => fetch(OpCode::SEI(op), 2, AddrMode::Implied, address, index, memory),
-        0xA2 => fetch(OpCode::LDX(op), 2, AddrMode::Immediate, address, index, memory),
-        0x1D => fetch(OpCode::ORA(op), 5, AddrMode::AbsoluteIndexedX(true), address, index, memory),
-        0x1E => fetch(OpCode::ASL(op), 7, AddrMode::AbsoluteIndexedX(false), address, index, memory),
-        0xD0 => fetch(OpCode::BNE(op), 4, AddrMode::Relative, address, index, memory),
-        0x61 => fetch(OpCode::ADC(op), 6, AddrMode::IndexedIndirectX, address, index, memory),
-        0x6C => fetch(OpCode::JMP(op), 5, AddrMode::Indirect, address, index, memory),
-        0x91 => fetch(OpCode::STA(op), 6, AddrMode::IndirectIndexedY(false), address, index, memory),
-        0x96 => fetch(OpCode::STX(op), 4, AddrMode::ZeropageIndexedY, address, index, memory),
-        _ =>  fetch(OpCode::NOP(op), 7, AddrMode::Implied, address, index, memory),
+        0x05 => fetch(OpCode::ORA(op), 3, AddrMode::Zeropage, data),
+        0x0A => fetch(OpCode::ASL(op), 2, AddrMode::Accumulator, data),
+        0x15 => fetch(OpCode::ORA(op), 4, AddrMode::ZeropageIndexedX, data),
+        0x20 => fetch(OpCode::JSR(op), 6, AddrMode::Absolute, data),
+        0x78 => fetch(OpCode::SEI(op), 2, AddrMode::Implied, data),
+        0xA2 => fetch(OpCode::LDX(op), 2, AddrMode::Immediate, data),
+        0x1D => fetch(OpCode::ORA(op), 5, AddrMode::AbsoluteIndexedX(true), data),
+        0x1E => fetch(OpCode::ASL(op), 7, AddrMode::AbsoluteIndexedX(false), data),
+        0xD0 => fetch(OpCode::BNE(op), 4, AddrMode::Relative, data),
+        0x61 => fetch(OpCode::ADC(op), 6, AddrMode::IndexedIndirectX, data),
+        0x6C => fetch(OpCode::JMP(op), 5, AddrMode::Indirect, data),
+        0x91 => fetch(OpCode::STA(op), 6, AddrMode::IndirectIndexedY(false), data),
+        0x96 => fetch(OpCode::STX(op), 4, AddrMode::ZeropageIndexedY, data),
+        _ =>  fetch(OpCode::NOP(op), 7, AddrMode::Implied, data),
     }
 }
