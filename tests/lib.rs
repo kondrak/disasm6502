@@ -23,4 +23,4 @@ fn check_disasm_file() {
 #[test]
 #[should_panic]
 fn check_disasm_file_fail() {
-    let _ = disasm6502::from_file("tests/foo").unwrap(); }
+    let _ = disasm6502::from_file("tests/foo").unwrap_or_else(|e| { panic!("{}", e); }); }
