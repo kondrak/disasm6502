@@ -1,5 +1,4 @@
 //! Error type for disasm6502 crate.
-use std::error::Error;
 use std::fmt;
 use std::io;
 use std::result;
@@ -17,15 +16,7 @@ pub enum Disasm6502Error {
 impl fmt::Display for Disasm6502Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            Disasm6502Error::Io(ref err)    => err.fmt(f)
-        }
-    }
-}
-
-impl Error for Disasm6502Error {
-    fn description(&self) -> &str {
-        match *self {
-            Disasm6502Error::Io(ref err)    => err.description(),
+            Disasm6502Error::Io(ref err) => err.fmt(f)
         }
     }
 }
