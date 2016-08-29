@@ -10,3 +10,12 @@ fn check_disasm() {
         println!("{}", i);
     }
 }
+
+#[test]
+fn check_disasm_file() {
+    let instructions = disasm6502::from_file("tests/file_test.prg").unwrap();
+
+    for i in instructions.iter() {
+        println!("{}", i);
+    }
+}
