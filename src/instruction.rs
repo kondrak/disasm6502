@@ -47,55 +47,81 @@ impl fmt::Display for CPURegister {
 
 pub enum OpCode {
     // Load/store
-    LDA, LDX, LDY, STA, STX, STY,
+    LDA(u8), LDX(u8), LDY(u8), STA(u8), STX(u8), STY(u8),
     // Register transfers
-    TAX, TAY, TXA, TYA,
+    TAX(u8), TAY(u8), TXA(u8), TYA(u8),
     // Stack operations
-    TSX, TXS, PHA, PHP, PLA, PLP,
+    TSX(u8), TXS(u8), PHA(u8), PHP(u8), PLA(u8), PLP(u8),
     // Logical
-    AND, EOR, ORA, BIT,
+    AND(u8), EOR(u8), ORA(u8), BIT(u8),
     // Arithmetic
-    ADC, SBC, CMP, CPX, CPY,
+    ADC(u8), SBC(u8), CMP(u8), CPX(u8), CPY(u8),
     // Inc/Dec
-    INC, INX, INY, DEC, DEX, DEY,
+    INC(u8), INX(u8), INY(u8), DEC(u8), DEX(u8), DEY(u8),
     // Shifts
-    ASL, LSR, ROL, ROR,
+    ASL(u8), LSR(u8), ROL(u8), ROR(u8),
     // Jump calls
-    JMP, JSR, RTS,
+    JMP(u8), JSR(u8), RTS(u8),
     // Branches
-    BCC, BCS, BEQ, BMI, BNE, BPL, BVC, BVS,
+    BCC(u8), BCS(u8), BEQ(u8), BMI(u8), BNE(u8), BPL(u8), BVC(u8), BVS(u8),
     // Status flag changes
-    CLC, CLD, CLI, CLV, SEC, SED, SEI,
+    CLC(u8), CLD(u8), CLI(u8), CLV(u8), SEC(u8), SED(u8), SEI(u8),
     // System functions
-    BRK, NOP, RTI,
+    BRK(u8), NOP(u8), RTI(u8),
     // forbidden/undocumented
-    HLT, SLO, ANC, RLA, SRE, RRA, ALR,
-    SAX, XAA, AHX, TAS, SHY, SHX, ARR,
-    LAX, LAS, DCP, AXS, ISC
+    HLT(u8), SLO(u8), ANC(u8), RLA(u8), SRE(u8), RRA(u8), ALR(u8),
+    SAX(u8), XAA(u8), AHX(u8), TAS(u8), SHY(u8), SHX(u8), ARR(u8),
+    LAX(u8), LAS(u8), DCP(u8), AXS(u8), ISC(u8)
+}
+
+impl OpCode {
+    pub fn to_hex(&self) -> u8 {
+        match *self {
+            OpCode::LDA(o) => o, OpCode::LDX(o) => o, OpCode::LDY(o) => o, OpCode::STA(o) => o,
+            OpCode::STX(o) => o, OpCode::STY(o) => o, OpCode::TAX(o) => o, OpCode::TAY(o) => o,
+            OpCode::TXA(o) => o, OpCode::TYA(o) => o, OpCode::TSX(o) => o, OpCode::TXS(o) => o,
+            OpCode::PHA(o) => o, OpCode::PHP(o) => o, OpCode::PLA(o) => o, OpCode::PLP(o) => o,
+            OpCode::AND(o) => o, OpCode::EOR(o) => o, OpCode::ORA(o) => o, OpCode::BIT(o) => o,
+            OpCode::ADC(o) => o, OpCode::SBC(o) => o, OpCode::CMP(o) => o, OpCode::CPX(o) => o,
+            OpCode::CPY(o) => o, OpCode::INC(o) => o, OpCode::INX(o) => o, OpCode::INY(o) => o,
+            OpCode::DEC(o) => o, OpCode::DEX(o) => o, OpCode::DEY(o) => o, OpCode::ASL(o) => o,
+            OpCode::LSR(o) => o, OpCode::ROL(o) => o, OpCode::ROR(o) => o, OpCode::JMP(o) => o,
+            OpCode::JSR(o) => o, OpCode::RTS(o) => o, OpCode::BCC(o) => o, OpCode::BCS(o) => o,
+            OpCode::BEQ(o) => o, OpCode::BMI(o) => o, OpCode::BNE(o) => o, OpCode::BPL(o) => o,
+            OpCode::BVC(o) => o, OpCode::BVS(o) => o, OpCode::CLC(o) => o, OpCode::CLD(o) => o,
+            OpCode::CLI(o) => o, OpCode::CLV(o) => o, OpCode::SEC(o) => o, OpCode::SED(o) => o,
+            OpCode::SEI(o) => o, OpCode::BRK(o) => o, OpCode::NOP(o) => o, OpCode::RTI(o) => o,
+            OpCode::HLT(o) => o, OpCode::SLO(o) => o, OpCode::ANC(o) => o, OpCode::RLA(o) => o,
+            OpCode::SRE(o) => o, OpCode::RRA(o) => o, OpCode::ALR(o) => o, OpCode::SAX(o) => o,
+            OpCode::XAA(o) => o, OpCode::AHX(o) => o, OpCode::TAS(o) => o, OpCode::SHY(o) => o,
+            OpCode::SHX(o) => o, OpCode::ARR(o) => o, OpCode::LAX(o) => o, OpCode::LAS(o) => o,
+            OpCode::DCP(o) => o, OpCode::AXS(o) => o, OpCode::ISC(o) => o
+        }
+    }
 }
 
 impl fmt::Display for OpCode {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let op_name = match *self {
-            OpCode::LDA => "LDA", OpCode::LDX => "LDX", OpCode::LDY => "LDY", OpCode::STA => "STA",
-            OpCode::STX => "STX", OpCode::STY => "STY", OpCode::TAX => "TAX", OpCode::TAY => "TAY",
-            OpCode::TXA => "TXA", OpCode::TYA => "TYA", OpCode::TSX => "TSX", OpCode::TXS => "TXS",
-            OpCode::PHA => "PHA", OpCode::PHP => "PHP", OpCode::PLA => "PLA", OpCode::PLP => "PLP",
-            OpCode::AND => "AND", OpCode::EOR => "EOR", OpCode::ORA => "ORA", OpCode::BIT => "BIT",
-            OpCode::ADC => "ADC", OpCode::SBC => "SBC", OpCode::CMP => "CMP", OpCode::CPX => "CPX",
-            OpCode::CPY => "CPY", OpCode::INC => "INC", OpCode::INX => "INX", OpCode::INY => "INY",
-            OpCode::DEC => "DEC", OpCode::DEX => "DEX", OpCode::DEY => "DEY", OpCode::ASL => "ASL",
-            OpCode::LSR => "LSR", OpCode::ROL => "ROL", OpCode::ROR => "ROR", OpCode::JMP => "JMP",
-            OpCode::JSR => "JSR", OpCode::RTS => "RTS", OpCode::BCC => "BCC", OpCode::BCS => "BCS",
-            OpCode::BEQ => "BEQ", OpCode::BMI => "BMI", OpCode::BNE => "BNE", OpCode::BPL => "BPL",
-            OpCode::BVC => "BVC", OpCode::BVS => "BVS", OpCode::CLC => "CLC", OpCode::CLD => "CLD",
-            OpCode::CLI => "CLI", OpCode::CLV => "CLV", OpCode::SEC => "SEC", OpCode::SED => "SED",
-            OpCode::SEI => "SEI", OpCode::BRK => "BRK", OpCode::NOP => "NOP", OpCode::RTI => "RTI",
-            OpCode::HLT => "HLT", OpCode::SLO => "SLO", OpCode::ANC => "ANC", OpCode::RLA => "RLA",
-            OpCode::SRE => "SRE", OpCode::RRA => "RRA", OpCode::ALR => "ALR", OpCode::SAX => "SAX",
-            OpCode::XAA => "XAA", OpCode::AHX => "AHX", OpCode::TAS => "TAS", OpCode::SHY => "SHY",
-            OpCode::SHX => "SHX", OpCode::ARR => "ARR", OpCode::LAX => "LAX", OpCode::LAS => "LAS",
-            OpCode::DCP => "DCP", OpCode::AXS => "AXS", OpCode::ISC => "ISC",
+            OpCode::LDA(_) => "LDA", OpCode::LDX(_) => "LDX", OpCode::LDY(_) => "LDY", OpCode::STA(_) => "STA",
+            OpCode::STX(_) => "STX", OpCode::STY(_) => "STY", OpCode::TAX(_) => "TAX", OpCode::TAY(_) => "TAY",
+            OpCode::TXA(_) => "TXA", OpCode::TYA(_) => "TYA", OpCode::TSX(_) => "TSX", OpCode::TXS(_) => "TXS",
+            OpCode::PHA(_) => "PHA", OpCode::PHP(_) => "PHP", OpCode::PLA(_) => "PLA", OpCode::PLP(_) => "PLP",
+            OpCode::AND(_) => "AND", OpCode::EOR(_) => "EOR", OpCode::ORA(_) => "ORA", OpCode::BIT(_) => "BIT",
+            OpCode::ADC(_) => "ADC", OpCode::SBC(_) => "SBC", OpCode::CMP(_) => "CMP", OpCode::CPX(_) => "CPX",
+            OpCode::CPY(_) => "CPY", OpCode::INC(_) => "INC", OpCode::INX(_) => "INX", OpCode::INY(_) => "INY",
+            OpCode::DEC(_) => "DEC", OpCode::DEX(_) => "DEX", OpCode::DEY(_) => "DEY", OpCode::ASL(_) => "ASL",
+            OpCode::LSR(_) => "LSR", OpCode::ROL(_) => "ROL", OpCode::ROR(_) => "ROR", OpCode::JMP(_) => "JMP",
+            OpCode::JSR(_) => "JSR", OpCode::RTS(_) => "RTS", OpCode::BCC(_) => "BCC", OpCode::BCS(_) => "BCS",
+            OpCode::BEQ(_) => "BEQ", OpCode::BMI(_) => "BMI", OpCode::BNE(_) => "BNE", OpCode::BPL(_) => "BPL",
+            OpCode::BVC(_) => "BVC", OpCode::BVS(_) => "BVS", OpCode::CLC(_) => "CLC", OpCode::CLD(_) => "CLD",
+            OpCode::CLI(_) => "CLI", OpCode::CLV(_) => "CLV", OpCode::SEC(_) => "SEC", OpCode::SED(_) => "SED",
+            OpCode::SEI(_) => "SEI", OpCode::BRK(_) => "BRK", OpCode::NOP(_) => "NOP", OpCode::RTI(_) => "RTI",
+            OpCode::HLT(_) => "HLT", OpCode::SLO(_) => "SLO", OpCode::ANC(_) => "ANC", OpCode::RLA(_) => "RLA",
+            OpCode::SRE(_) => "SRE", OpCode::RRA(_) => "RRA", OpCode::ALR(_) => "ALR", OpCode::SAX(_) => "SAX",
+            OpCode::XAA(_) => "XAA", OpCode::AHX(_) => "AHX", OpCode::TAS(_) => "TAS", OpCode::SHY(_) => "SHY",
+            OpCode::SHX(_) => "SHX", OpCode::ARR(_) => "ARR", OpCode::LAX(_) => "LAX", OpCode::LAS(_) => "LAS",
+            OpCode::DCP(_) => "DCP", OpCode::AXS(_) => "AXS", OpCode::ISC(_) => "ISC",
         };
         
         write!(f, "{}", op_name)
@@ -114,30 +140,30 @@ pub struct Instruction {
 
 impl fmt::Display for Instruction {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let op_value = if let Some(v) = self.operand {
-            v
+        let (op_value, op_hi, op_lo) = if let Some(v) = self.operand {
+            (v, (v >> 8) & 0xFF, v & 0xFF)
         } else {
-            0
+            (0, 0, 0)
         };
         
-        let operand = match self.addr_mode {
-            AddrMode::Implied => format!(""),
-            AddrMode::Accumulator => format!("A"),
-            AddrMode::Immediate => format!("#${:02X}", op_value),
-            AddrMode::Absolute => format!("${:04X}  ", op_value),
-            AddrMode::AbsoluteIndexedX(_) => format!("${:04X},X", op_value),
-            AddrMode::AbsoluteIndexedY(_) => format!("${:04X},Y", op_value),
-            AddrMode::Zeropage => format!("${:02X}", op_value),
-            AddrMode::ZeropageIndexedX => format!("${:02X},X", op_value),
-            AddrMode::ZeropageIndexedY => format!("${:02X},Y", op_value),
+        let (operand, operand_hex) = match self.addr_mode {
+            AddrMode::Implied => (format!(""), format!("      ")),
+            AddrMode::Accumulator => (format!("A"), format!("      ")),
+            AddrMode::Immediate => (format!("#${:02X}", op_value), format!(" {:02X}   ", op_lo)),
+            AddrMode::Absolute => (format!("${:04X}", op_value), format!(" {:02X} {:02X}", op_lo, op_hi)),
+            AddrMode::AbsoluteIndexedX(_) => (format!("${:04X},X", op_value), format!(" {:02X} {:02X}", op_lo, op_hi)),
+            AddrMode::AbsoluteIndexedY(_) => (format!("${:04X},Y", op_value), format!(" {:02X} {:02X}", op_lo, op_hi)),
+            AddrMode::Zeropage => (format!("${:02X}", op_value), format!(" {:02X}   ", op_lo)),
+            AddrMode::ZeropageIndexedX => (format!("${:02X},X", op_value), format!(" {:02X}   ", op_lo)),
+            AddrMode::ZeropageIndexedY => (format!("${:02X},Y", op_value), format!(" {:02X}   ", op_lo)),
             // TODO: check wrapping?
-            AddrMode::Relative => format!("${:04X}", (self.address as i16 + (2 + op_value as i8) as i16) as u16),
-            AddrMode::Indirect => format!("(${:04X})", op_value),
-            AddrMode::IndexedIndirectX => format!("(${:02X},X)", op_value),
-            AddrMode::IndirectIndexedY(_) => format!("(${:02X}),Y", op_value)
+            AddrMode::Relative => (format!("${:04X}", (self.address as i16 + (2 + op_value as i8) as i16) as u16), format!(" {:02X}   ", op_lo)),
+            AddrMode::Indirect => (format!("(${:04X})", op_value), format!(" {:02X} {:02X}", op_lo, op_hi)),
+            AddrMode::IndexedIndirectX => (format!("(${:02X},X)", op_value), format!(" {:02X}   ", op_lo)),
+            AddrMode::IndirectIndexedY(_) => (format!("(${:02X}),Y", op_value), format!(" {:02X}   ", op_lo))
         };
 
-        write!(f, "${:04X}: {} {}", self.address, self.opcode, operand)
+        write!(f, "${:04X}: {:02X}{} {} {}", self.address, self.opcode.to_hex(), operand_hex, self.opcode, operand)
     }
 }
 
@@ -199,20 +225,21 @@ fn fetch(opcode: OpCode, num_cycles: u8, addr_mode: AddrMode, address: u16, inde
 }
 
 pub fn decode(address: u16, index: &mut usize, memory: &[u8]) -> Instruction {
-    match memory[*index] {
-        0x05 => fetch(OpCode::ORA, 3, AddrMode::Zeropage, address, index, memory),
-        0x0A => fetch(OpCode::ASL, 2, AddrMode::Accumulator, address, index, memory),
-        0x15 => fetch(OpCode::ORA, 4, AddrMode::ZeropageIndexedX, address, index, memory),
-        0x20 => fetch(OpCode::JSR, 6, AddrMode::Absolute, address, index, memory),
-        0x78 => fetch(OpCode::SEI, 2, AddrMode::Implied, address, index, memory),
-        0xA2 => fetch(OpCode::LDX, 2, AddrMode::Immediate, address, index, memory),
-        0x1D => fetch(OpCode::ORA, 5, AddrMode::AbsoluteIndexedX(true), address, index, memory),
-        0x1E => fetch(OpCode::ASL, 7, AddrMode::AbsoluteIndexedX(false), address, index, memory),
-        0xD0 => fetch(OpCode::BNE, 4, AddrMode::Relative, address, index, memory),
-        0x61 => fetch(OpCode::ADC, 6, AddrMode::IndexedIndirectX, address, index, memory),
-        0x6C => fetch(OpCode::JMP, 5, AddrMode::Indirect, address, index, memory),
-        0x91 => fetch(OpCode::STA, 6, AddrMode::IndirectIndexedY(false), address, index, memory),
-        0x96 => fetch(OpCode::STX, 4, AddrMode::ZeropageIndexedY, address, index, memory),
-        _ =>  fetch(OpCode::NOP, 7, AddrMode::Implied, address, index, memory),
+    let op = memory[*index];
+    match op {
+        0x05 => fetch(OpCode::ORA(op), 3, AddrMode::Zeropage, address, index, memory),
+        0x0A => fetch(OpCode::ASL(op), 2, AddrMode::Accumulator, address, index, memory),
+        0x15 => fetch(OpCode::ORA(op), 4, AddrMode::ZeropageIndexedX, address, index, memory),
+        0x20 => fetch(OpCode::JSR(op), 6, AddrMode::Absolute, address, index, memory),
+        0x78 => fetch(OpCode::SEI(op), 2, AddrMode::Implied, address, index, memory),
+        0xA2 => fetch(OpCode::LDX(op), 2, AddrMode::Immediate, address, index, memory),
+        0x1D => fetch(OpCode::ORA(op), 5, AddrMode::AbsoluteIndexedX(true), address, index, memory),
+        0x1E => fetch(OpCode::ASL(op), 7, AddrMode::AbsoluteIndexedX(false), address, index, memory),
+        0xD0 => fetch(OpCode::BNE(op), 4, AddrMode::Relative, address, index, memory),
+        0x61 => fetch(OpCode::ADC(op), 6, AddrMode::IndexedIndirectX, address, index, memory),
+        0x6C => fetch(OpCode::JMP(op), 5, AddrMode::Indirect, address, index, memory),
+        0x91 => fetch(OpCode::STA(op), 6, AddrMode::IndirectIndexedY(false), address, index, memory),
+        0x96 => fetch(OpCode::STX(op), 4, AddrMode::ZeropageIndexedY, address, index, memory),
+        _ =>  fetch(OpCode::NOP(op), 7, AddrMode::Implied, address, index, memory),
     }
 }
