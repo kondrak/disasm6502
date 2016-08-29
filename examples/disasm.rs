@@ -8,12 +8,32 @@ fn main()
         panic!("{}", e);
     });
 
+    // print all instructions!
     for i in instructions.iter() {
-        // print instruction
+        // format cycle count
+        let cc = if i.extra_cycle {
+            format!("(*{}) ", i.cycles)
+        } else {
+            format!("({})  ", i.cycles)
+        };
+        
+        // format read registers
         let rr = if let Some(ref reg_read) = i.registers_read {
-            let mut r_str = String::from(" R:[ ");
+            let mut r_str = String::from(" Reads:[");
             for r in reg_read.iter() {
-                r_str.push_str(format!("{} ", r).as_str());
+                r_str.push_str(format!("{}", r).as_str());
+            }
+            r_str.push_str("]");
+            r_str.to_owned()
+        } else {
+            String::from("          ")
+        };
+
+        // format written registers
+        let rw = if let Some(ref reg_written) = i.registers_written {
+            let mut r_str = String::from("   Writes:[");
+            for r in reg_written.iter() {
+                r_str.push_str(format!("{}", r).as_str());
             }
             r_str.push_str("]");
             r_str.to_owned()
@@ -21,18 +41,16 @@ fn main()
             String::from("")
         };
 
-        let rw = if let Some(ref reg_written) = i.registers_written {
-            let mut r_str = String::from(" W:[ ");
-            for r in reg_written.iter() {
-                r_str.push_str(format!("{} ", r).as_str());
-            }
-            r_str.push_str("]");
-            r_str.to_owned()
-        } else {
-            String::from("")
-        };
-        
-        println!("{}{}{}", i, rr, rw);
+        // format instruction mnemonic
+        let instr_str = format!("{}", i);
+        let mut spacing = String::new();
+
+        // format extra spacing for better looks!
+        for _ in 0..(32 - instr_str.len()) {
+            spacing.push_str(" ");
+        }
+
+        println!("{}{}{}{}{}", instr_str, spacing, cc, rr, rw);
     }
 
     println!("${:04X}: .END", bytes.len());

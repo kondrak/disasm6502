@@ -170,7 +170,7 @@ pub struct Instruction {
 
 impl fmt::Display for Instruction {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "${:04X}: {}{}{}", self.address, self.as_hex_str(), if self.extra_cycle { "*" } else { " " }, self.as_str())
+        write!(f, "${:04X}: {} {}", self.address, self.as_hex_str(), self.as_str())
     }
 }
 
