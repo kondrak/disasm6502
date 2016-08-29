@@ -142,17 +142,22 @@ impl fmt::Display for OpCode {
 
 pub struct Instruction {
     pub opcode: OpCode,
-    pub cycles: u8, // how many cycles to execute the operation?
+    /// Cycle count for the instruction.
+    pub cycles: u8,
     pub addr_mode: AddrMode,
     pub address: u16,
     pub operand: Option<u16>,
-    pub registers_read: RegVec, // registers read by this instruction
-    pub registers_written: RegVec // registers written by this instruction
+    /// Instruction may take an extra cycle if zero page boundary is crossed.
+    pub extra_cycle: bool,
+    /// Registers read by this instruction.
+    pub registers_read: RegVec,
+    /// Registers written by this instruction.
+    pub registers_written: RegVec
 }
 
 impl fmt::Display for Instruction {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "${:04X}: {} {}", self.address, self.as_hex_str(), self.as_str())
+        write!(f, "${:04X}: {}{}{}", self.address, self.as_hex_str(), if self.extra_cycle { "*" } else { " " }, self.as_str())
     }
 }
 
@@ -163,6 +168,7 @@ impl Instruction {
             cycles: cycles,
             addr_mode: addr_mode,
             address: address,
+            extra_cycle: false,
             operand: None,
             registers_read: None,
             registers_written: None
@@ -227,21 +233,22 @@ fn read_word_le(index: &mut usize, buffer: &[u8]) -> u16 {
     ((value_be << 8) & 0xFF00) | ((value_be >> 8) & 0x00FF)
 }
 
-fn fetch_operand(addr_mode: &AddrMode, index: &mut usize, buffer: &[u8]) -> Option<u16> {
+fn fetch_operand(addr_mode: &AddrMode, index: &mut usize, buffer: &[u8]) -> (Option<u16>, bool) {
     *index += 1;
 
+    let mut extra_cycle = false;
     let operand = match *addr_mode {
         Absolute => Some(read_word_le(index, buffer)),
-        AbsoluteIndexedX(_) => Some(read_word_le(index, buffer)),
-        AbsoluteIndexedY(_) => Some(read_word_le(index, buffer)),
+        AbsoluteIndexedX(ec) => { extra_cycle = ec; Some(read_word_le(index, buffer)) },
+        AbsoluteIndexedY(ec) => { extra_cycle = ec; Some(read_word_le(index, buffer)) },
         Zeropage => Some(buffer[*index] as u16),
         ZeropageIndexedX => Some(buffer[*index] as u16),
         ZeropageIndexedY => Some(buffer[*index] as u16),
-        Relative  => Some(buffer[*index] as u16),
+        Relative  => { extra_cycle = true; Some(buffer[*index] as u16) },
         Immediate => Some(buffer[*index] as u16),
         Indirect  => Some(read_word_le(index, buffer)),
-        IndexedIndirectX    => Some(buffer[*index] as u16),
-        IndirectIndexedY(_) => Some(buffer[*index] as u16),
+        IndexedIndirectX     => Some(buffer[*index] as u16),
+        IndirectIndexedY(ec) => {extra_cycle = ec; Some(buffer[*index] as u16) },
         _ => None
     };
 
@@ -249,20 +256,22 @@ fn fetch_operand(addr_mode: &AddrMode, index: &mut usize, buffer: &[u8]) -> Opti
     if let Some(_) = operand {
         *index += 1;
     }
-    
-    operand
+
+    (operand, extra_cycle)
 }
 
 fn fetch(opcode: OpCode, num_cycles: u8, addr_mode: AddrMode, data: (u16, &mut usize, &[u8]), reg_read: RegVec, reg_written: RegVec) -> Instruction {
-    // TODO: cycle count should be adjusted here for certain instructions
-    let operand = fetch_operand(&addr_mode, data.1, data.2);
+    let (operand, extra_cycle) = fetch_operand(&addr_mode, data.1, data.2);
+
     let mut instruction = Instruction::new(opcode, data.0, num_cycles, addr_mode);
     instruction.operand = operand;
+    instruction.extra_cycle = extra_cycle;
     instruction.registers_read = reg_read;
     instruction.registers_written = reg_written;
     instruction
 }
 
+/// Create instruction for given index in memory buffer using a start address
 pub fn decode(address: u16, index: &mut usize, memory: &[u8]) -> Instruction {
     let op = memory[*index];
 
