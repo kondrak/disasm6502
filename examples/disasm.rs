@@ -12,4 +12,6 @@ fn main()
         // print instruction
         println!("{}", i);
     }
+
+    println!("${:04X}: .END", bytes.len());
 }

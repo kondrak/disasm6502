@@ -207,13 +207,12 @@ impl Instruction {
     }
 }
 
+// read word: Little Endian
 fn read_word_le(index: &mut usize, buffer: &[u8]) -> u16 {
-    let value_be: u16 = ((buffer[*index] as u16) << 8 & 0xFF00) |    
-    ((buffer[*index + 0x0001] as u16) & 0x00FF);
-    let value_le: u16 = ((value_be << 8) & 0xFF00) | ((value_be >> 8) & 0x00FF);
-
+    let value_be = ((buffer[*index] as u16) << 8 & 0xFF00) | ((buffer[*index + 0x0001] as u16) & 0x00FF);
     *index += 1;
-    value_le
+
+    ((value_be << 8) & 0xFF00) | ((value_be >> 8) & 0x00FF)
 }
 
 fn fetch_operand(addr_mode: &AddrMode, index: &mut usize, buffer: &[u8]) -> Option<u16> {
