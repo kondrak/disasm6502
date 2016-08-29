@@ -106,6 +106,7 @@ pub struct Instruction {
     pub opcode: OpCode,
     pub cycles: u8, // how many cycles to execute the operation?
     pub addr_mode: AddrMode,
+    pub address: u16,
     pub operand: Option<u16>,
     pub registers_read: Option<Vec<CPURegister>>, // registers read by this instruction
     pub registers_written: Option<Vec<CPURegister>> // registers written by this instruction
@@ -127,29 +128,26 @@ impl fmt::Display for Instruction {
             AddrMode::AbsoluteIndexedX(_) => format!("${:04X},X", op_value),
             AddrMode::AbsoluteIndexedY(_) => format!("${:04X},Y", op_value),
             AddrMode::Zeropage => format!("${:02X}", op_value),
-            AddrMode::ZeropageIndexedX => format!("${:02X},X  ", op_value),
-            AddrMode::ZeropageIndexedY => format!("${:02X},Y  ", op_value),
-            /*AddrMode::Relative => 
-                let b: i8 = cpu.read_byte(prev_pc) as i8;
-                operand = format!("${:04X}  ", ((cpu.prev_pc + 1) as i16 + b as i16) as u16);
-            format!("${:04X}", op_value as i16 
-            },*/
+            AddrMode::ZeropageIndexedX => format!("${:02X},X", op_value),
+            AddrMode::ZeropageIndexedY => format!("${:02X},Y", op_value),
+            // TODO: check wrapping?
+            AddrMode::Relative => format!("${:04X}", (self.address as i16 + (2 + op_value as i8) as i16) as u16),
             AddrMode::Indirect => format!("(${:04X})", op_value),
             AddrMode::IndexedIndirectX => format!("(${:02X},X)", op_value),
-            AddrMode::IndirectIndexedY(_) => format!("(${:02X}),Y", op_value),
-            _ => format!("")
+            AddrMode::IndirectIndexedY(_) => format!("(${:02X}),Y", op_value)
         };
 
-        write!(f, "{} {}", self.opcode, operand)
+        write!(f, "${:04X}: {} {}", self.address, self.opcode, operand)
     }
 }
 
 impl Instruction {
-    fn new(opcode: OpCode, cycles: u8, addr_mode: AddrMode) -> Instruction {
+    fn new(opcode: OpCode, address: u16, cycles: u8, addr_mode: AddrMode) -> Instruction {
         Instruction {
             opcode: opcode,
             cycles: cycles,
             addr_mode: addr_mode,
+            address: address,
             operand: None,
             registers_read: None,
             registers_written: None
@@ -192,21 +190,29 @@ fn fetch_operand(addr_mode: &AddrMode, index: &mut usize, buffer: &[u8]) -> Opti
     operand
 }
 
-fn fetch(opcode: OpCode, num_cycles: u8, addr_mode: AddrMode, index: &mut usize, buffer: &[u8]) -> Instruction {
+fn fetch(opcode: OpCode, num_cycles: u8, addr_mode: AddrMode, address: u16, index: &mut usize, buffer: &[u8]) -> Instruction {
     // TODO: cycle count should be adjusted here for certain instructions
     let operand = fetch_operand(&addr_mode, index, buffer);
-    let mut instruction = Instruction::new(opcode, num_cycles, addr_mode);
+    let mut instruction = Instruction::new(opcode, address, num_cycles, addr_mode);
     instruction.operand = operand;
     instruction
 }
 
-// returns a set: (Instruction, next instruction fetch offset)
-pub fn decode(index: &mut usize, memory: &[u8]) -> Instruction {
+pub fn decode(address: u16, index: &mut usize, memory: &[u8]) -> Instruction {
     match memory[*index] {
-        0x00 => fetch(OpCode::BRK, 7, AddrMode::Implied, index, memory),
-        0x20 => fetch(OpCode::JSR, 6, AddrMode::Absolute, index, memory),
-        0x78 => fetch(OpCode::SEI, 2, AddrMode::Implied, index, memory),
-        0xA2 => fetch(OpCode::LDX, 2, AddrMode::Immediate, index, memory),
-        _ =>  fetch(OpCode::NOP, 7, AddrMode::Implied, index, memory),
+        0x05 => fetch(OpCode::ORA, 3, AddrMode::Zeropage, address, index, memory),
+        0x0A => fetch(OpCode::ASL, 2, AddrMode::Accumulator, address, index, memory),
+        0x15 => fetch(OpCode::ORA, 4, AddrMode::ZeropageIndexedX, address, index, memory),
+        0x20 => fetch(OpCode::JSR, 6, AddrMode::Absolute, address, index, memory),
+        0x78 => fetch(OpCode::SEI, 2, AddrMode::Implied, address, index, memory),
+        0xA2 => fetch(OpCode::LDX, 2, AddrMode::Immediate, address, index, memory),
+        0x1D => fetch(OpCode::ORA, 5, AddrMode::AbsoluteIndexedX(true), address, index, memory),
+        0x1E => fetch(OpCode::ASL, 7, AddrMode::AbsoluteIndexedX(false), address, index, memory),
+        0xD0 => fetch(OpCode::BNE, 4, AddrMode::Relative, address, index, memory),
+        0x61 => fetch(OpCode::ADC, 6, AddrMode::IndexedIndirectX, address, index, memory),
+        0x6C => fetch(OpCode::JMP, 5, AddrMode::Indirect, address, index, memory),
+        0x91 => fetch(OpCode::STA, 6, AddrMode::IndirectIndexedY(false), address, index, memory),
+        0x96 => fetch(OpCode::STX, 4, AddrMode::ZeropageIndexedY, address, index, memory),
+        _ =>  fetch(OpCode::NOP, 7, AddrMode::Implied, address, index, memory),
     }
 }
