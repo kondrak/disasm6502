@@ -1,3 +1,4 @@
+//! Decoded 6502 instruction.
 // opcode enumeration suffix: // addressing mode:
 // imm = #$00                 // immediate 
 // zp = $00                   // zero page
@@ -27,22 +28,27 @@ macro_rules! sv {
     }};
 }
 
+/// 6502 addressing modes.
 pub enum AddrMode {
     Implied,
     Accumulator,
     Immediate,
     Absolute,
-    AbsoluteIndexedX(bool), // extra cycle?
-    AbsoluteIndexedY(bool), // extra cycle?
+    /// extra cycle on page boundary cross?
+    AbsoluteIndexedX(bool),
+    /// extra cycle on page boundary cross?
+    AbsoluteIndexedY(bool),
     Zeropage,
     ZeropageIndexedX,
     ZeropageIndexedY,
     Relative,
     Indirect,
     IndexedIndirectX,
-    IndirectIndexedY(bool) // extra cycle?
+    /// extra cycleon page boundary cross?
+    IndirectIndexedY(bool)
 }
 
+/// 6502 CPU registers.
 pub enum CPURegister {
     A, X, Y
 }
@@ -57,6 +63,7 @@ impl fmt::Display for CPURegister {
     }
 }
 
+/// 6502 opcodes (with associated hex value).
 pub enum OpCode {
     // Load/store
     LDA(u8), LDX(u8), LDY(u8), STA(u8), STX(u8), STY(u8),
@@ -87,6 +94,7 @@ pub enum OpCode {
 }
 
 impl OpCode {
+    /// Fetch opcode's hex value.
     pub fn to_hex(&self) -> u8 {
         match *self {
             LDA(o) => o, LDX(o) => o, LDY(o) => o, STA(o) => o,
@@ -140,18 +148,23 @@ impl fmt::Display for OpCode {
     }
 }
 
+/// Decoded 6502 instruction.
 pub struct Instruction {
+    /// Instruction opcode.
     pub opcode: OpCode,
     /// Cycle count for the instruction.
     pub cycles: u8,
+    /// Instruction addressing mode.
     pub addr_mode: AddrMode,
+    /// Address of the instruction in memory buffer.
     pub address: u16,
+    /// Optional instruction operand.
     pub operand: Option<u16>,
     /// Instruction may take an extra cycle if zero page boundary is crossed.
     pub extra_cycle: bool,
-    /// Registers read by this instruction.
+    /// Registers read by this instruction (optional).
     pub registers_read: RegVec,
-    /// Registers written by this instruction.
+    /// Registers written by this instruction (optional).
     pub registers_written: RegVec
 }
 
@@ -175,6 +188,7 @@ impl Instruction {
         }
     }
 
+    /// Convert instruction to fixed length string of hex values (opcode + operand, if applicable).
     pub fn as_hex_str(&self) -> String {
         let (oper_hi, oper_lo) = if let Some(v) = self.operand {
             ((v >> 8) & 0xFF, v & 0xFF)
@@ -201,6 +215,7 @@ impl Instruction {
         format!("{:02X}{}", self.opcode.to_hex(), operand_hex)
     }
 
+    /// Convert instruction to assembler mnemonic
     pub fn as_str(&self) -> String {
         let operand = if let Some(v) = self.operand { v } else { 0 };
         
