@@ -87,11 +87,24 @@ pub enum OpCode {
     CLC(u8), CLD(u8), CLI(u8), CLV(u8), SEC(u8), SED(u8), SEI(u8),
     // System functions
     BRK(u8), NOP(u8), RTI(u8),
-    // forbidden/undocumented
+    // illegal/undocumented
     HLT(u8), SLO(u8), ANC(u8), RLA(u8), SRE(u8), RRA(u8), ALR(u8),
     SAX(u8), XAA(u8), AHX(u8), TAS(u8), SHY(u8), SHX(u8), ARR(u8),
     LAX(u8), LAS(u8), DCP(u8), AXS(u8), ISC(u8)
 }
+
+// illegal opcodes
+const ILLEGAL_OPS: [u8; 105] = [0x02, 0x03, 0x04, 0x07, 0x0B, 0x0C, 0x0F, 0x12, 0x13, 0x14,
+                                0x17, 0x1A, 0x1B, 0x1C, 0x1F, 0x22, 0x23, 0x27, 0x2B, 0x2F,
+                                0x32, 0x33, 0x34, 0x37, 0x3A, 0x3B, 0x3C, 0x3F, 0x42, 0x43,
+                                0x44, 0x47, 0x4B, 0x4F, 0x52, 0x53, 0x54, 0x57, 0x5A, 0x5B,
+                                0x5C, 0x5F, 0x62, 0x63, 0x64, 0x67, 0x6B, 0x6F, 0x72, 0x73,
+                                0x74, 0x77, 0x7A, 0x7B, 0x7C, 0x7F, 0x80, 0x82, 0x83, 0x87,
+                                0x89, 0x8B, 0x8F, 0x92, 0x93, 0x97, 0x9B, 0x9C, 0x9E, 0x9F,
+                                0xA3, 0xA7, 0xAB, 0xAF, 0xB2, 0xB3, 0xB7, 0xBB, 0xBF, 0xC2,
+                                0xC3, 0xC7, 0xCB, 0xCF, 0xD2, 0xD3, 0xD4, 0xD7, 0xDA, 0xDB,
+                                0xDC, 0xDF, 0xE2, 0xE3, 0xE7, 0xEB, 0xEF, 0xF2, 0xF3, 0xF4,
+                                0xF7, 0xFA, 0xFB, 0xFC, 0xFF];
 
 impl OpCode {
     /// Fetch opcode's hex value.
@@ -162,6 +175,8 @@ pub struct Instruction {
     pub operand: Option<u16>,
     /// instruction may take an extra cycle if zero page boundary is crossed
     pub extra_cycle: bool,
+    /// instruction is illegal/undocumented
+    pub illegal: bool,
     /// registers read by this instruction (optional)
     pub registers_read: RegVec,
     /// registers written by this instruction (optional)
@@ -182,6 +197,7 @@ impl Instruction {
             addr_mode: addr_mode,
             address: address,
             extra_cycle: false,
+            illegal: false,
             operand: None,
             registers_read: None,
             registers_written: None
@@ -311,12 +327,18 @@ fn fetch_operand(addr_mode: &AddrMode, index: &mut usize, buffer: &[u8]) -> (Opt
 
 fn fetch(opcode: OpCode, num_cycles: u8, addr_mode: AddrMode, data: (u16, &mut usize, &[u8]), reg_read: RegVec, reg_written: RegVec) -> Instruction {
     let (operand, extra_cycle) = fetch_operand(&addr_mode, data.1, data.2);
+    let op_hex = opcode.to_hex();
 
     let mut instruction = Instruction::new(opcode, data.0, num_cycles, addr_mode);
     instruction.operand = operand;
     instruction.extra_cycle = extra_cycle;
     instruction.registers_read = reg_read;
     instruction.registers_written = reg_written;
+
+    if let Some(_) = ILLEGAL_OPS.into_iter().filter(|&&illegal| op_hex == illegal).next() {
+        instruction.illegal = true;
+    }
+
     instruction
 }
 
@@ -493,7 +515,7 @@ pub fn decode(address: u16, index: &mut usize, memory: &[u8]) -> Instruction {
         /* SBC_aby */ 0xF9 => fetch(SBC(op), 5, AbsoluteIndexedY(true), data, sv![A,Y], sv![A]), // add 1 cycle if page boundary is crossed
         /* SBC_abx */ 0xFD => fetch(SBC(op), 5, AbsoluteIndexedX(true), data, sv![A,X], sv![A]), // add 1 cycle if page boundary is crossed
         /* INC_abx */ 0xFE => fetch(INC(op), 7, AbsoluteIndexedX(false), data, sv![X], None),
-        // ** undocumented/forbidden instructions **
+        // ** illegal/undocumented instructions **
         /* HLT     */ 0x02 => fetch(HLT(op), 1, Implied, data, None, None),
         /* SLO_izx */ 0x03 => fetch(SLO(op), 8, IndexedIndirectX, data, sv![A,X], sv![A]),
         /* NOP_zp  */ 0x04 => fetch(NOP(op), 3, Zeropage, data, None, None),

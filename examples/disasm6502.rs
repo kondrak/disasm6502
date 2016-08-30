@@ -27,13 +27,15 @@ fn main()
 
 // helper string formatter
 fn format_strings(instruction: &Instruction) -> String {
+    let op_illegal_str = format!("{}", if instruction.illegal { "???" } else { "   " });
+
     // format cycle count
     let cc = if instruction.extra_cycle {
-        format!("(*{}) ", instruction.cycles)
+        format!("{} (*{}) ", op_illegal_str, instruction.cycles)
     } else {
-        format!("({})  ", instruction.cycles)
+        format!("{} ({})  ", op_illegal_str, instruction.cycles)
     };
-    
+
     // format read registers
     let rr = if let Some(ref reg_read) = instruction.registers_read {
         let mut r_str = String::from(" Reads:[");
@@ -60,7 +62,7 @@ fn format_strings(instruction: &Instruction) -> String {
 
     // add extra spacing for better looks!
     let mut spacing = String::new();
-    for _ in 0..(32 - format!("{}", instruction).len()) {
+    for _ in 0..(30 - format!("{}", instruction).len()) {
         spacing.push_str(" ");
     }
 
