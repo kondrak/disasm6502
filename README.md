@@ -61,13 +61,13 @@ $0006: A2 FF    LDX #$FF        (2)               Writes:[X]
 $0008: 20 02 FD JSR $FD02       (6)            
 $000B: 78       SEI             (2)            
 $000C: D0 FC    BNE $000A       (*4)           
-$000E: 1D 05 1E ORA $1E05,X     (*5)  Reads:[X]   Writes:[A]
-$0011: 04       NOP             (7)               Writes:[X]
-$0012: 15 02    ORA $02,X       (4)   Reads:[X]   Writes:[A]
+$000E: 1D 05 1E ORA $1E05,X     (*5)  Reads:[AX]   Writes:[A]
+$0011: 04 15    NOP $15         (3)            
+$0013: 02       HLT             (1)            
 $0014: 96 AB    STX $AB,Y       (4)   Reads:[XY]
-$0016: 58       NOP             (7)               Writes:[X]
-$0017: 61 01    ADC ($01,X)     (6)   Reads:[X]   Writes:[A]
-$0019: 91 FB    STA ($FB),Y     (6)   Reads:[A]
+$0016: 58       CLI             (2)            
+$0017: 61 01    ADC ($01,X)     (6)   Reads:[AX]   Writes:[A]
+$0019: 91 FB    STA ($FB),Y     (6)   Reads:[AY]
 $001B: .END
 ```
 
