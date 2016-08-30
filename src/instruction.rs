@@ -1,4 +1,4 @@
-//! Decoded 6502 instruction
+//! Decoded 6502 instruction.
 // opcode enumeration suffix: // addressing mode:
 // imm = #$00                 // immediate 
 // zp = $00                   // zero page
@@ -28,15 +28,15 @@ macro_rules! sv {
     }};
 }
 
-/// 6502 addressing modes
+/// 6502 addressing modes.
 pub enum AddrMode {
     Implied,
     Accumulator,
     Immediate,
     Absolute,
-    /// extra cycle on page boundary cross?
+    /// bool - extra cycle on page boundary cross?
     AbsoluteIndexedX(bool),
-    /// extra cycle on page boundary cross?
+    /// bool - extra cycle on page boundary cross?
     AbsoluteIndexedY(bool),
     Zeropage,
     ZeropageIndexedX,
@@ -44,11 +44,11 @@ pub enum AddrMode {
     Relative,
     Indirect,
     IndexedIndirectX,
-    /// extra cycleon page boundary cross?
+    /// bool - extra cycleon page boundary cross?
     IndirectIndexedY(bool)
 }
 
-/// 6502 CPU registers
+/// 6502 CPU registers.
 pub enum CPURegister {
     A, X, Y
 }
@@ -63,7 +63,7 @@ impl fmt::Display for CPURegister {
     }
 }
 
-/// 6502 opcodes (with associated hex value)
+/// 6502 opcodes (with associated hex value).
 pub enum OpCode {
     // Load/store
     LDA(u8), LDX(u8), LDY(u8), STA(u8), STX(u8), STY(u8),
@@ -148,7 +148,7 @@ impl fmt::Display for OpCode {
     }
 }
 
-/// Decoded 6502 instruction
+/// Decoded 6502 instruction.
 pub struct Instruction {
     /// instruction opcode
     pub opcode: OpCode,
@@ -189,6 +189,23 @@ impl Instruction {
     }
 
     /// Convert instruction to fixed length string of hex values (opcode + operand, if applicable).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// extern crate disasm6502;
+    ///
+    /// let memory = vec![0x05, 0x0B, 0x6C, 0x01, 0x02];
+    ///
+    /// // set program counter to 0 - will decode first instruction
+    /// let mut pc: usize = 0;
+    ///
+    /// // interprets 0x05 as an instruction, places it at $0800
+    /// let instruction = disasm6502::instruction::decode(0x0800, &mut pc, &memory);
+    ///
+    /// // prints: "0x05 0x0B   " (instruction + operand value)
+    /// println!("{}", instruction.as_hex_str());
+    /// ```
     pub fn as_hex_str(&self) -> String {
         let (oper_hi, oper_lo) = if let Some(v) = self.operand {
             ((v >> 8) & 0xFF, v & 0xFF)
@@ -215,7 +232,24 @@ impl Instruction {
         format!("{:02X}{}", self.opcode.to_hex(), operand_hex)
     }
 
-    /// Convert instruction to assembler mnemonic
+    /// Convert instruction to assembler mnemonic.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// extern crate disasm6502;
+    ///
+    /// let memory = vec![0x05, 0x0B, 0x6C, 0x01, 0x02];
+    ///
+    /// // set program counter to 0 - will decode first instruction
+    /// let mut pc: usize = 0;
+    ///
+    /// // interprets 0x05 as an instruction, places it at $0800
+    /// let instruction = disasm6502::instruction::decode(0x0800, &mut pc, &memory);
+    ///
+    /// // prints: "ORA $0B"
+    /// println!("{}", instruction.as_str());
+    /// ```
     pub fn as_str(&self) -> String {
         let operand = if let Some(v) = self.operand { v } else { 0 };
         
@@ -286,7 +320,21 @@ fn fetch(opcode: OpCode, num_cycles: u8, addr_mode: AddrMode, data: (u16, &mut u
     instruction
 }
 
-/// Create instruction for given index in memory buffer using a start address
+/// Create instruction for given index/program counter in memory buffer and place it at specified address.
+///
+/// # Examples
+///
+/// ```
+/// extern crate disasm6502;
+///
+/// let memory = vec![0x05, 0x0B, 0x6C, 0x01, 0x02];
+///
+/// // set program counter to 0 - will decode first instruction
+/// let mut pc: usize = 0;
+///
+/// // interprets 0x05 as an instruction, places it at $0800
+/// let instruction = disasm6502::instruction::decode(0x0800, &mut pc, &memory);
+/// ```
 pub fn decode(address: u16, index: &mut usize, memory: &[u8]) -> Instruction {
     let op = memory[*index];
 

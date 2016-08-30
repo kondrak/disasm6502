@@ -13,7 +13,7 @@ fn check_disasm() {
 
 #[test]
 fn check_disasm_file() {
-    let instructions = disasm6502::from_file("tests/file_test.prg").unwrap();
+    let instructions = disasm6502::from_file("tests/data.bin").unwrap();
 
     for i in instructions.iter() {
         let cc = if i.extra_cycle {
