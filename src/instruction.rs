@@ -343,7 +343,7 @@ pub fn decode(address: u16, index: &mut usize, memory: &[u8]) -> Instruction {
     match op {
         // ** documented instructions **
         /* BRK     */ 0x00 => fetch(BRK(op), 7, Implied, data, None, None),
-        /* ORA_izx */ 0x01 => fetch(ORA(op), 6, IndexedIndirectX, data, None, None),
+        /* ORA_izx */ 0x01 => fetch(ORA(op), 6, IndexedIndirectX, data, sv![X], sv![A]),
         /* ORA_zp  */ 0x05 => fetch(ORA(op), 3, Zeropage, data, None, None),
         /* ASL_zp  */ 0x06 => fetch(ASL(op), 5, Zeropage, data, None, None), 
         /* PHP     */ 0x08 => fetch(PHP(op), 3, Implied, data, None, None),
