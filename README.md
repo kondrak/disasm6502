@@ -7,4 +7,49 @@
 [![Coverage Status](https://coveralls.io/repos/github/kondrak/disasm6502/badge.svg?branch=master)](https://coveralls.io/github/kondrak/disasm6502?branch=master)
 ![](https://img.shields.io/crates/l/json.svg)
 
-6502 disassembler
+A crate providing functionality to disassemble 6502 binary code.
+
+[Documentation](https://kondrak.github.io/disasm6502/disasm6502/index.html)
+
+Usage
+-----
+```toml
+# Cargo.toml
+[dependencies]
+disasm6502 = "0.1"
+```
+
+Build instructions
+------------------
+
+```
+cargo build
+cargo run --example disasm6502
+```
+
+This will run the [example](https://github.com/kondrak/disasm6502/blob/master/examples/disasm6502.rs) which produces the following output:
+
+```
+$0000: 05 0B    ORA $0B         (3)   Reads:[A]   Writes:[A]
+$0002: 6C 01 02 JMP ($0201)     (5)            
+$0005: 0A       ASL A           (2)   Reads:[A]   Writes:[A]
+$0006: A2 FF    LDX #$FF        (2)               Writes:[X]
+$0008: 20 02 FD JSR $FD02       (6)            
+$000B: 78       SEI             (2)            
+$000C: D0 FC    BNE $000A       (*4)           
+$000E: 1D 05 1E ORA $1E05,X     (*5)  Reads:[X]   Writes:[A]
+$0011: 04       NOP             (7)               Writes:[X]
+$0012: 15 02    ORA $02,X       (4)   Reads:[X]   Writes:[A]
+$0014: 96 AB    STX $AB,Y       (4)   Reads:[XY]
+$0016: 58       NOP             (7)               Writes:[X]
+$0017: 61 01    ADC ($01,X)     (6)   Reads:[X]   Writes:[A]
+$0019: 91 FB    STA ($FB),Y     (6)   Reads:[A]
+$001B: .END
+```
+
+## License
+
+Licensed under either of
+
+ * Apache License, Version 2.0 ([LICENSE-APACHE](LICENSE-APACHE) or http://www.apache.org/licenses/LICENSE-2.0)
+ * MIT license ([LICENSE-MIT](LICENSE-MIT) or http://opensource.org/licenses/MIT)
