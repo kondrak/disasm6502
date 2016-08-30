@@ -7,7 +7,7 @@
 [![Coverage Status](https://coveralls.io/repos/github/kondrak/disasm6502/badge.svg?branch=master)](https://coveralls.io/github/kondrak/disasm6502?branch=master)
 ![](https://img.shields.io/crates/l/json.svg)
 
-A crate providing functionality to disassemble 6502 binary code.
+A crate providing functionality to disassemble 6502 binary code. Supports decoding of forbidden instructions, provides information about cycle count and which registers the instruction accesses. Acceptable data input can be either an array of bytes, a vector of bytes or a binary file.
 
 [Documentation](https://kondrak.github.io/disasm6502/disasm6502/index.html)
 
