@@ -1,4 +1,4 @@
-//! [Disasm6502](https://github.com/kondrak/disasm6502) - a 6502 disassembler.
+//! [Disasm6502](https://github.com/kondrak/disasm6502) - a 6502 disassembler
 pub mod error;
 pub mod instruction;
 

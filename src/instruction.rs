@@ -1,4 +1,4 @@
-//! Decoded 6502 instruction.
+//! Decoded 6502 instruction
 // opcode enumeration suffix: // addressing mode:
 // imm = #$00                 // immediate 
 // zp = $00                   // zero page
@@ -28,7 +28,7 @@ macro_rules! sv {
     }};
 }
 
-/// 6502 addressing modes.
+/// 6502 addressing modes
 pub enum AddrMode {
     Implied,
     Accumulator,
@@ -48,7 +48,7 @@ pub enum AddrMode {
     IndirectIndexedY(bool)
 }
 
-/// 6502 CPU registers.
+/// 6502 CPU registers
 pub enum CPURegister {
     A, X, Y
 }
@@ -63,7 +63,7 @@ impl fmt::Display for CPURegister {
     }
 }
 
-/// 6502 opcodes (with associated hex value).
+/// 6502 opcodes (with associated hex value)
 pub enum OpCode {
     // Load/store
     LDA(u8), LDX(u8), LDY(u8), STA(u8), STX(u8), STY(u8),
@@ -148,23 +148,23 @@ impl fmt::Display for OpCode {
     }
 }
 
-/// Decoded 6502 instruction.
+/// Decoded 6502 instruction
 pub struct Instruction {
-    /// Instruction opcode.
+    /// instruction opcode
     pub opcode: OpCode,
-    /// Cycle count for the instruction.
+    /// cycle count for the instruction
     pub cycles: u8,
-    /// Instruction addressing mode.
+    /// instruction addressing mode
     pub addr_mode: AddrMode,
-    /// Address of the instruction in memory buffer.
+    /// address of the instruction in memory buffer
     pub address: u16,
-    /// Optional instruction operand.
+    /// optional instruction operand
     pub operand: Option<u16>,
-    /// Instruction may take an extra cycle if zero page boundary is crossed.
+    /// instruction may take an extra cycle if zero page boundary is crossed
     pub extra_cycle: bool,
-    /// Registers read by this instruction (optional).
+    /// registers read by this instruction (optional)
     pub registers_read: RegVec,
-    /// Registers written by this instruction (optional).
+    /// registers written by this instruction (optional)
     pub registers_written: RegVec
 }
 
