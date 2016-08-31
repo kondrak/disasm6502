@@ -1,7 +1,7 @@
 # disasm6502
 
 [![Crates.io](https://img.shields.io/crates/v/disasm6502.svg)](https://crates.io/crates/disasm6502)
-[![Documentation](https://img.shields.io/badge/Rust-%20%20Documentation-blue.svg)](https://kondrak.github.io/disasm6502/disasm6502/index.html)
+[![Documentation](https://docs.rs/disasm6502/badge.svg)](https://docs.rs/disasm6502)
 [![Build Status](https://travis-ci.org/kondrak/disasm6502.svg)](https://travis-ci.org/kondrak/disasm6502)
 [![Build status](https://ci.appveyor.com/api/projects/status/gwyroi4ib3hevlt4?svg=true)](https://ci.appveyor.com/project/kondrak/disasm6502)
 [![Coverage Status](https://coveralls.io/repos/github/kondrak/disasm6502/badge.svg?branch=master)](https://coveralls.io/github/kondrak/disasm6502?branch=master)
@@ -9,7 +9,7 @@
 
 A crate providing functionality to disassemble 6502 binary code. Supports decoding of forbidden instructions, provides information about cycle count and which registers the instruction accesses. Acceptable data input can be either an array of bytes, a vector of bytes or a binary file.
 
-[Documentation](https://kondrak.github.io/disasm6502/disasm6502/index.html)
+[Documentation](https://docs.rs/disasm6502)
 
 Usage
 -----
