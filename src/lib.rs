@@ -1,6 +1,6 @@
 //! [Disasm6502](https://github.com/kondrak/disasm6502) - a 6502 disassembler crate.
 //!
-//! A crate providing functionality to disassemble 6502 binary code. Supports decoding of forbidden instructions, provides information about cycle count and which registers the instruction accesses. Acceptable data input can be either an array of bytes, a vector of bytes or a binary file.
+//! A crate providing functionality to disassemble 6502 binary code. Supports decoding of forbidden instructions, provides information about cycle count, which registers the instruction accesses and which status flags are affected. Acceptable data input can be either an array of bytes, a vector of bytes or a binary file.
 //!
 //!# Quick Start
 //!
