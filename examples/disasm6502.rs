@@ -38,24 +38,42 @@ fn format_strings(instruction: &Instruction) -> String {
 
     // format read registers
     let rr = if let Some(ref reg_read) = instruction.registers_read {
-        let mut r_str = String::from(" Reads:[");
+        let mut r_str = String::from("Reads:[");
         for r in reg_read.iter() {
             r_str.push_str(format!("{}", r).as_str());
         }
         r_str.push_str("]");
+        for _ in 0..(13 - r_str.len()) {
+            r_str.push_str(" ");
+        }
         r_str.to_owned()
     } else {
-        String::from("          ")
+        String::from("             ")
     };
 
     // format written registers
     let rw = if let Some(ref reg_written) = instruction.registers_written {
-        let mut r_str = String::from("   Writes:[");
+        let mut r_str = String::from("Writes:[");
         for r in reg_written.iter() {
             r_str.push_str(format!("{}", r).as_str());
         }
         r_str.push_str("]");
+        for _ in 0..(14 - r_str.len()) {
+            r_str.push_str(" ");
+        }
         r_str.to_owned()
+    } else {
+        String::from("              ")
+    };
+
+    // format affected flags
+    let af = if let Some(ref aff_flags) = instruction.affected_flags {
+        let mut f_str = String::from("Affects:[");
+        for f in aff_flags.iter() {
+            f_str.push_str(format!("{}", f).as_str());
+        }
+        f_str.push_str("]");
+        f_str.to_owned()
     } else {
         String::from("")
     };
@@ -66,5 +84,5 @@ fn format_strings(instruction: &Instruction) -> String {
         spacing.push_str(" ");
     }
 
-    format!("{}{}{}{}{}", instruction, spacing, cc, rr, rw)
+    format!("{}{}{}{}{}{}", instruction, spacing, cc, rr, rw, af)
 }

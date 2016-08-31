@@ -14,10 +14,12 @@
 
 use std::fmt;
 use self::CPURegister::*;
+use self::CPUStatusFlag::*;
 use self::OpCode::*;
 use self::AddrMode::*;
 
-pub type RegVec = Option<Vec<CPURegister>>;
+pub type RegVec  = Option<Vec<CPURegister>>;
+pub type FlagVec = Option<Vec<CPUStatusFlag>>;
 
 // Some() vector
 macro_rules! sv {
@@ -60,6 +62,22 @@ impl fmt::Display for CPURegister {
         };
 
         write!(f, "{}", reg_name)
+    }
+}
+
+/// 6502 CPU status flags.
+pub enum CPUStatusFlag {
+    N, V, B, D, I, Z, C
+}
+
+impl fmt::Display for CPUStatusFlag {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let flag_name = match *self {
+            N => "N", V => "V", B => "B", D => "D",
+            I => "I", Z => "Z", C => "C"
+        };
+
+        write!(f, "{}", flag_name)
     }
 }
 
@@ -180,7 +198,9 @@ pub struct Instruction {
     /// registers read by this instruction (optional)
     pub registers_read: RegVec,
     /// registers written by this instruction (optional)
-    pub registers_written: RegVec
+    pub registers_written: RegVec,
+    /// CPU status flags affected by this instruction (optional)
+    pub affected_flags: FlagVec
 }
 
 impl fmt::Display for Instruction {
@@ -200,7 +220,8 @@ impl Instruction {
             illegal: false,
             operand: None,
             registers_read: None,
-            registers_written: None
+            registers_written: None,
+            affected_flags: None
         }
     }
 
@@ -325,8 +346,30 @@ fn fetch_operand(addr_mode: &AddrMode, index: &mut usize, buffer: &[u8]) -> (Opt
     (operand, extra_cycle)
 }
 
+fn fetch_affected_flags(opcode: &OpCode) -> FlagVec {
+    match *opcode {
+        CLC(_) => sv![C], CLD(_) => sv![D], CLI(_) => sv![I],
+        CLV(_) => sv![V], SEC(_) => sv![C], SED(_) => sv![D],
+        SLO(_) => sv![C], SEI(_) => sv![I], BRK(_) => sv![B],
+        LDA(_) => sv![N,Z], LDX(_) => sv![N,Z], LDY(_) => sv![N,Z],
+        TAX(_) => sv![N,Z], TAY(_) => sv![N,Z], TXA(_) => sv![N,Z],
+        TYA(_) => sv![N,Z], AND(_) => sv![N,Z], EOR(_) => sv![N,Z],
+        ORA(_) => sv![N,Z], INC(_) => sv![N,Z], INX(_) => sv![N,Z],
+        INY(_) => sv![N,Z], DEC(_) => sv![N,Z], DEX(_) => sv![N,Z],
+        DEY(_) => sv![N,Z], LAX(_) => sv![N,Z], BIT(_) => sv![N,V,Z],
+        CPY(_) => sv![N,Z,C], ASL(_) => sv![N,Z,C], LSR(_) => sv![N,Z,C],
+        ROL(_) => sv![N,Z,C], ROR(_) => sv![N,Z,C], CMP(_) => sv![N,Z,C],
+        CPX(_) => sv![N,Z,C], ANC(_) => sv![N,Z,C], RLA(_) => sv![N,Z,C],
+        SRE(_) => sv![N,Z,C], DCP(_) => sv![N,Z,C], ADC(_) => sv![N,V,Z,C],
+        SBC(_) => sv![N,V,Z,C], RRA(_) => sv![N,V,Z,C], ISC(_) => sv![N,V,Z,C],
+        RTI(_) => sv![N,V,B,D,I,Z,C],
+        _ => None
+    }
+}
+
 fn fetch(opcode: OpCode, num_cycles: u8, addr_mode: AddrMode, data: (u16, &mut usize, &[u8]), reg_read: RegVec, reg_written: RegVec) -> Instruction {
     let (operand, extra_cycle) = fetch_operand(&addr_mode, data.1, data.2);
+    let affected_flags = fetch_affected_flags(&opcode);
     let op_hex = opcode.to_hex();
 
     let mut instruction = Instruction::new(opcode, data.0, num_cycles, addr_mode);
@@ -334,6 +377,7 @@ fn fetch(opcode: OpCode, num_cycles: u8, addr_mode: AddrMode, data: (u16, &mut u
     instruction.extra_cycle = extra_cycle;
     instruction.registers_read = reg_read;
     instruction.registers_written = reg_written;
+    instruction.affected_flags = affected_flags;
 
     if let Some(_) = ILLEGAL_OPS.into_iter().filter(|&&illegal| op_hex == illegal).next() {
         instruction.illegal = true;
