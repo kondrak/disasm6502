@@ -34,7 +34,7 @@ fn check_disasm_file() {
         };
 
         let rw = if let Some(ref reg_written) = i.registers_written {
-            let mut r_str = String::from("   Writes:[");
+            let mut r_str = String::from(" Writes:[");
             for r in reg_written.iter() {
                 r_str.push_str(format!("{}", r).as_str());
             }
@@ -44,14 +44,18 @@ fn check_disasm_file() {
             String::from("")
         };
 
-        let instr_str = format!("{}", i);
-        let mut spacing = String::new();
+        let af = if let Some(ref aff_flags) = i.affected_flags {
+            let mut f_str = String::from(" Affects:[");
+            for f in aff_flags.iter() {
+                f_str.push_str(format!("{}", f).as_str());
+            }
+            f_str.push_str("]");
+            f_str.to_owned()
+        } else {
+            String::from("")
+        };
 
-        for _ in 0..(32 - instr_str.len()) {
-            spacing.push_str(" ");
-        }
-
-        println!("{}{}{}{}{}", instr_str, spacing, cc, rr, rw);
+        println!("{}{}{}{}{}", i, cc, rr, rw, af);
     }
 }
 
