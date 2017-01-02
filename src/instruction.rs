@@ -311,9 +311,19 @@ impl Instruction {
     }
 }
 
-// read word: Little Endian
+// read a byte and return it as u16 for convenience (0x0000 if can't fetch)
+fn read_byte(index: usize, buffer: &[u8]) -> u16 {
+    if index < buffer.len() {
+        buffer[index] as u16
+    }
+    else {
+        0x0000
+    }
+}
+
+// read word: Little Endian (0x0000 if can't fetch)
 fn read_word_le(index: &mut usize, buffer: &[u8]) -> u16 {
-    let value_be = ((buffer[*index] as u16) << 8 & 0xFF00) | ((buffer[*index + 0x0001] as u16) & 0x00FF);
+    let value_be = (read_byte(*index, buffer) << 8 & 0xFF00) | (read_byte((*index + 0x0001), buffer) & 0x00FF);
     *index += 1;
 
     ((value_be << 8) & 0xFF00) | ((value_be >> 8) & 0x00FF)
@@ -327,14 +337,14 @@ fn fetch_operand(addr_mode: &AddrMode, index: &mut usize, buffer: &[u8]) -> (Opt
         Absolute => Some(read_word_le(index, buffer)),
         AbsoluteIndexedX(ec) => { extra_cycle = ec; Some(read_word_le(index, buffer)) },
         AbsoluteIndexedY(ec) => { extra_cycle = ec; Some(read_word_le(index, buffer)) },
-        Zeropage => Some(buffer[*index] as u16),
-        ZeropageIndexedX => Some(buffer[*index] as u16),
-        ZeropageIndexedY => Some(buffer[*index] as u16),
-        Relative  => { extra_cycle = true; Some(buffer[*index] as u16) },
-        Immediate => Some(buffer[*index] as u16),
+        Zeropage => Some(read_byte(*index, buffer)),
+        ZeropageIndexedX => Some(read_byte(*index, buffer)),
+        ZeropageIndexedY => Some(read_byte(*index, buffer)),
+        Relative  => { extra_cycle = true; Some(read_byte(*index, buffer)) },
+        Immediate => Some(read_byte(*index, buffer)),
         Indirect  => Some(read_word_le(index, buffer)),
-        IndexedIndirectX     => Some(buffer[*index] as u16),
-        IndirectIndexedY(ec) => {extra_cycle = ec; Some(buffer[*index] as u16) },
+        IndexedIndirectX     => Some(read_byte(*index, buffer)),
+        IndirectIndexedY(ec) => {extra_cycle = ec; Some(read_byte(*index, buffer)) },
         _ => None
     };
 
