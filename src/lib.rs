@@ -103,7 +103,7 @@ pub fn from_addr_array(bytes: &[u8], start_address: u16) -> Result<Vec<Instructi
     while index < bytes.len() {
         let instruction = instruction::decode(next_addr, &mut index, &bytes);
         ret.push(instruction);
-        next_addr = start_address + index as u16;
+        next_addr = start_address.wrapping_add(index as u16);
     }
 
     Ok(ret)
