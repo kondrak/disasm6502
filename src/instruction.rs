@@ -300,8 +300,14 @@ impl Instruction {
             Zeropage => format!("${:02X}", operand),
             ZeropageIndexedX => format!("${:02X},X", operand),
             ZeropageIndexedY => format!("${:02X},Y", operand),
-            // TODO: check wrapping?
-            Relative => format!("${:04X}", (self.address as i16 + (2 + operand as i8) as i16) as u16),
+            Relative => format!(
+                "${:04X}",
+                self.address
+                    // Add 2 for the next PC value
+                    .wrapping_add(2)
+                    // Add the sign-extended offset
+                    .wrapping_add(operand as i8 as u16)
+            ),
             Indirect => format!("(${:04X})", operand),
             IndexedIndirectX    => format!("(${:02X},X)", operand),
             IndirectIndexedY(_) => format!("(${:02X}),Y", operand)
