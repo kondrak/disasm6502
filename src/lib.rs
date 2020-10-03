@@ -60,9 +60,9 @@ pub fn from_file(filename: &str) -> Result<Vec<Instruction>> {
 /// ```
 pub fn from_addr_file(filename: &str, start_address: u16) -> Result<Vec<Instruction>> {
     let path = Path::new(&filename);
-    let mut file = try!(File::open(&path));
+    let mut file = File::open(&path)?;
     let mut bytes = Vec::new();
-    try!(file.read_to_end(&mut bytes));
+    file.read_to_end(&mut bytes)?;
 
     from_addr_array(&bytes, start_address)
 }
