@@ -329,7 +329,7 @@ fn read_byte(index: usize, buffer: &[u8]) -> u16 {
 
 // read word: Little Endian (0x0000 if can't fetch)
 fn read_word_le(index: &mut usize, buffer: &[u8]) -> u16 {
-    let value_be = (read_byte(*index, buffer) << 8 & 0xFF00) | (read_byte((*index + 0x0001), buffer) & 0x00FF);
+    let value_be = (read_byte(*index, buffer) << 8 & 0xFF00) | (read_byte(*index + 0x0001, buffer) & 0x00FF);
     *index += 1;
 
     ((value_be << 8) & 0xFF00) | ((value_be >> 8) & 0x00FF)
@@ -395,7 +395,7 @@ fn fetch(opcode: OpCode, num_cycles: u8, addr_mode: AddrMode, data: (u16, &mut u
     instruction.registers_written = reg_written;
     instruction.affected_flags = affected_flags;
 
-    if let Some(_) = ILLEGAL_OPS.into_iter().filter(|&&illegal| op_hex == illegal).next() {
+    if let Some(_) = ILLEGAL_OPS.iter().filter(|&&illegal| op_hex == illegal).next() {
         instruction.illegal = true;
     }
 
@@ -681,6 +681,5 @@ pub fn decode(address: u16, index: &mut usize, memory: &[u8]) -> Instruction {
         /* ISC_aby */ 0xFB => fetch(ISC(op), 7, AbsoluteIndexedY(false), data, sv![A,Y], sv![A]),
         /* NOP_abx */ 0xFC => fetch(NOP(op), 5, AbsoluteIndexedX(true), data, sv![X], None), // add 1 cycle if page boundary is crossed
         /* ISC_abx */ 0xFF => fetch(ISC(op), 7, AbsoluteIndexedX(false), data, sv![A,X], sv![A]),
-                         _ => fetch(NOP(op), 0, Implied, data, None, None)
     }
 }
