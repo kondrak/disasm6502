@@ -73,7 +73,7 @@ fn check_relative_addressing() {
         start: u16,
         bytes: &'static [u8],
         expect: u16
-    };
+    }
     static TESTS: [RelativeTest; 60] = [
         RelativeTest { start: 0x0000, bytes: &[BEQ, 0xFD], expect: 0xFFFF },
         RelativeTest { start: 0x0000, bytes: &[BEQ, 0xFE], expect: 0x0000 },
