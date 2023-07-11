@@ -2,7 +2,7 @@
 
 [![Crates.io](https://img.shields.io/crates/v/disasm6502.svg)](https://crates.io/crates/disasm6502)
 [![Documentation](https://docs.rs/disasm6502/badge.svg)](https://docs.rs/disasm6502)
-[![Build Status](https://img.shields.io/github/workflow/status/kondrak/disasm6502/CI?logo=github)](https://github.com/kondrak/disasm6502/actions?query=workflow%3ACI)
+[![build](https://github.com/kondrak/disasm6502/actions/workflows/rust.yml/badge.svg)](https://github.com/kondrak/disasm6502/actions/workflows/rust.yml)
 [![Coverage Status](https://coveralls.io/repos/github/kondrak/disasm6502/badge.svg?branch=master)](https://coveralls.io/github/kondrak/disasm6502?branch=master)
 ![](https://img.shields.io/crates/l/json.svg)
 
